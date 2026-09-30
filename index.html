@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Health Services Audit Form – Dhofar</title>
+<style>
+:root{--bg:#EDF2F3;--ink:#12232B;--mut:#5B6E76;--ln:#C9D7DB;--ac:#005A9C;--g:#2E7D4F;--a:#B97900;--r:#B3372F}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Segoe UI",Roboto,Tahoma,Arial,sans-serif}
+[dir="rtl"] body{font-family:Tahoma, "Segoe UI", Arial, sans-serif}
+header.top{background:linear-gradient(135deg,#005A9C,#003E6B);color:#fff;padding:14px 18px;border-bottom:4px solid var(--g)}
+header.top h1{font-size:20px;margin:0}header.top p{margin:0;opacity:.85;font-size:13px}
+.bar1{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--ln);padding:8px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.bar1 .sp{flex:1}
+button,.btn{font:inherit;border:0;border-radius:6px;padding:7px 14px;background:var(--ac);color:#fff;cursor:pointer}
+button.s,.btn.s{background:#E4EDEF;color:var(--ink)}button.ok{background:var(--g)}
+button.lang-btn{background:#12232B;color:#fff;font-weight:bold}
+:focus-visible{outline:3px solid #F2B84B}
+main{max-width:940px;margin:14px auto;padding:0 12px}
+section,.card{background:#fff;border:1px solid var(--ln);border-radius:8px;padding:14px 16px;margin-bottom:14px}
+.tabs{display:flex;overflow-x:auto;border-bottom:2px solid var(--ln);margin-bottom:12px}
+.tabs button{flex:1;background:none;color:#555;border-radius:0;border-bottom:3px solid transparent;font-weight:600;white-space:nowrap}
+.tabs button.on{color:var(--ac);border-bottom-color:var(--ac);background:#fff}
+h2{margin:0 0 10px;font-size:18px;display:flex;justify-content:space-between;border-bottom:2px solid var(--ac);padding-bottom:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.f{display:flex;flex-direction:column;gap:3px;font-size:14px}.f>span:first-child,legend{color:var(--mut)}.w{grid-column:1/-1}
+input[type=number],input[type=text],input[type=date],select,textarea,.nt{font:inherit;padding:6px 8px;border:1px solid var(--ln);border-radius:5px;width:100%;background:#fff}
+.rd label,.ck{margin-inline-end:14px;display:inline-flex;gap:5px;align-items:center}
+fieldset{border:1px solid var(--ln);border-radius:6px;margin:0}
+.out{margin-top:12px;background:#F3F7F8;border-radius:6px;padding:8px 12px;font-size:14px}
+.out div{display:flex;justify-content:space-between;gap:8px;padding:2px 0;border-bottom:1px dotted var(--ln)}
+.warn{color:var(--r);font-size:13px}.g{color:var(--g)}.a{color:var(--a)}.r{color:var(--r)}
+b.g,b.a,b.r{font-size:20px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:6px 0 12px}th,td{border:1px solid var(--ln);padding:5px 8px;text-align:start}th{background:#E4EDEF}
+.bar{height:10px;background:#E4EDEF;border-radius:5px;overflow:hidden}.bar i{display:block;height:100%}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:10px 0}
+.kp div{border:1px solid var(--ln);border-radius:8px;padding:10px;text-align:center}.kp b{display:block;font-size:26px;color:var(--ac)}
+@media print{.np{display:none!important}body{background:#fff}.card{border:0;padding:0}@page{size:A4;margin:14mm}}
+</style>
+</head>
+<body>
+<header class="top np">
+  <h1 id="h_title">Smart Health Services Audit</h1>
+  <p id="h_sub">Directorate General of Health Services – Dhofar Governorate</p>
+</header>
+<div class="bar1 np">
+  <button class="lang-btn" id="bL">عربي</button>
+  <span id="tot"></span>
+  <span class="sp"></span>
+  <button class="ok" id="bR">Generate final report</button>
+  <button class="s" id="bX">Export JSON</button>
+  <label class="btn s"><span id="lbl_imp">Import JSON</span><input type="file" id="bI" accept=".json" hidden></label>
+  <button class="s" id="bC">Clear all</button>
+</div>
+<main id="app">
+  <section><h2 id="lbl_adet">Audit details</h2><div class="grid" id="info"></div></section>
+  <div class="tabs" id="tabs"></div>
+  <div id="secs"></div>
+</main>
+<main id="rep" hidden></main>
+
+<script>
+const $=s=>document.querySelector(s),Q=s=>[...document.querySelectorAll(s)];
+let V={};try{V=JSON.parse(localStorage.getItem('aud2')||'{}')}catch(e){}
+let currentLang = V['_lang'] || 'en';
+
+const dict = {
+  en: {
+    title: "Smart Health Services Audit",
+    sub: "Directorate General of Health Services – Dhofar Governorate",
+    langBtn: "عربي",
+    genRep: "Generate final report",
+    expJson: "Export JSON",
+    impJson: "Import JSON",
+    clrAll: "Clear all",
+    auditDet: "Audit details",
+    facLbl: "Health facility",
+    selFac: "— Select facility —",
+    orTypeFac: "Or type facility name (if not listed)",
+    audName: "Auditor name",
+    audDt: "Audit date",
+    audPer: "Audit period",
+    overallScore: "Overall score",
+    yes: "Yes",
+    no: "No",
+    na: "N/A",
+    note: "Note",
+    challenges: "Challenges",
+    othNotes: "Other important notes",
+    clsAuto: "Classification against benchmark (auto: <b id=\"a-{p}\">—</b>). You may override with a reason.",
+    autoOpt: "Automatic",
+    reasonOverride: "Reason for override",
+    ivReq: "Intervention required?",
+    sug: "suggested",
+    servNA: "Service not available: excluded from scoring",
+    modalityMismatch: "Modality counts do not add up to the total requests",
+    refExceedVis: "Referred patients exceed visitors",
+    numExceedDenom: "Numerator exceeds denominator in a quality indicator",
+    newAnxExceedTotal: "New anxiety cases exceed total",
+    newDepExceedTotal: "New depression cases exceed total",
+    trnDocExceedTotal: "Trained doctors exceed total doctors",
+    compExceedExt: "Complications exceed extractions",
+    overrideReasonReq: "Enter a reason for overriding the classification",
+    backEdit: "Back to editing",
+    printPdf: "Print / save as PDF",
+    repTitle: "Health Services Audit Report – Dhofar Governorate",
+    facility: "Facility",
+    auditor: "Auditor",
+    date: "Date",
+    period: "Period",
+    bandsNote: "Bands: compliant 85 and above, needs improvement 60–84, critical below 60.",
+    secHead: "Section",
+    scoreHead: "Score",
+    clsHead: "Classification",
+    ivHead: "Intervention",
+    indicatorHead: "Indicator",
+    valueHead: "Value",
+    refHead: "Reference",
+    secReqIv: "Sections needing intervention",
+    keyFindRec: "Key findings and recommendations",
+    noFind: "No findings.",
+    secReqIvList: "Sections requiring intervention",
+    none: "None",
+    actionPlan: "Action plan",
+    action: "Action",
+    resp: "Responsible",
+    deadline: "Deadline",
+    audSig: "Auditor signature",
+    facSig: "Facility manager signature",
+    confirmClear: "Clear all data?",
+    invalidFile: "Invalid file"
+  },
+  ar: {
+    title: "تدقيق الخدمات الصحية الذكي",
+    sub: "المديرية العامة للخدمات الصحية بمحافظة ظفار",
+    langBtn: "English",
+    genRep: "إنشاء التقرير النهائي",
+    expJson: "تصدير JSON",
+    impJson: "استيراد JSON",
+    clrAll: "مسح الكل",
+    auditDet: "تفاصيل التدقيق",
+    facLbl: "المؤسسة الصحية",
+    selFac: "— اختر المؤسسة —",
+    orTypeFac: "أو اكتب اسم المؤسسة (إذا لم تكن مدرجة)",
+    audName: "اسم المدقق",
+    audDt: "تاريخ التدقيق",
+    audPer: "فترة التدقيق",
+    overallScore: "الدرجة الكلية",
+    yes: "نعم",
+    no: "لا",
+    na: "غير مطبق",
+    note: "ملاحظة",
+    challenges: "التحديات",
+    othNotes: "ملاحظات هامة أخرى",
+    clsAuto: "التصنيف مقارنة بالمؤشر (آلي: <b id=\"a-{p}\">—</b>). يمكنك التعديل مع ذكر السبب.",
+    autoOpt: "تلقائي",
+    reasonOverride: "سبب التعديل",
+    ivReq: "هل يتطلب تدخلاً؟",
+    sug: "المقترح",
+    servNA: "الخدمة غير متوفرة: مستبعدة من التقييم",
+    modalityMismatch: "مجموع الفحوصات الفرعية لا يتطابق مع إجمالي الطلبات",
+    refExceedVis: "عدد المرضى المحولين يتجاوز عدد الزوار",
+    numExceedDenom: "البسط يتجاوز المقام في مؤشر الجودة",
+    newAnxExceedTotal: "حالات القلق الجديدة تتجاوز الإجمالي",
+    newDepExceedTotal: "حالات الاكتئاب الجديدة تتجاوز الإجمالي",
+    trnDocExceedTotal: "الأطباء المدربون يتجاوزون الإجمالي",
+    compExceedExt: "المضاعفات تتجاوز عدد الخلع",
+    overrideReasonReq: "أدخل سبباً لتعديل التصنيف",
+    backEdit: "العودة للتحرير",
+    printPdf: "طباعة / حفظ كـ PDF",
+    repTitle: "تقرير تدقيق الخدمات الصحية – محافظة ظفار",
+    facility: "المؤسسة",
+    auditor: "المدقق",
+    date: "التاريخ",
+    period: "الفترة",
+    bandsNote: "النطاقات: مطبق 85 فأعلى، يحتاج تحسين 60–84، حرج أقل من 60.",
+    secHead: "القسم",
+    scoreHead: "الدرجة",
+    clsHead: "التصنيف",
+    ivHead: "التدخل",
+    indicatorHead: "المؤشر",
+    valueHead: "القيمة",
+    refHead: "المرجع",
+    secReqIv: "أقسام تتطلب تدخلاً",
+    keyFindRec: "النتائج الرئيسية والتوصيات",
+    noFind: "لا توجد ملاحظات.",
+    secReqIvList: "الأقسام التي تتطلب تدخلاً",
+    none: "لا يوجد",
+    actionPlan: "خطة العمل",
+    action: "الإجراء",
+    resp: "المسؤول",
+    deadline: "الموعد النهائي",
+    audSig: "توقيع المدقق",
+    facSig: "توقيع مدير المؤسسة",
+    confirmClear: "هل تريد مسح جميع البيانات؟",
+    invalidFile: "ملف غير صالح"
+  }
+};
+
+const save=()=>{try{localStorage.setItem('aud2',JSON.stringify(V))}catch(e){}};
+const g=k=>{const x=V[k];return x===''||x==null||isNaN(x)?null:+x},pct=(a,b)=>a==null||!b?null:a/b*100;
+const fm=v=>v==null?'—':+(+v).toFixed(1);
+const gr=(v,th,lo)=>v==null?null:lo?6-th.filter(t=>v>=t).length:1+th.filter(t=>v>t).length;
+const I=(l,v,u,t,sc,rec)=>({l,v,u,t,sc,rec});
+const G=(l,v,u,t,th,lo,rec)=>{const x=gr(v,th,lo);return I(l,v,u,t,x==null?null:Math.round(x/6*100),rec)};
+
+const st=s=>s>=85?'g':s>=60?'a':'r';
+const stN={
+  en:{g:'Compliant',a:'Needs improvement',r:'Critical'},
+  ar:{g:'مطبق',a:'يحتاج تحسين',r:'حرج'}
+};
+const CL={
+  en:{b:'Below benchmark',m:'In line with benchmark',a:'Above benchmark'},
+  ar:{b:'أقل من المؤشر',m:'مطابق للمؤشر',a:'أعلى من المؤشر'}
+};
+
+const CH={
+  en:['Shortage of staff','Shortage of equipment','Unsuitable room'],
+  ar:['نقص الكادر','نقص المعدات','غرفة غير مناسبة']
+};
+
+const SI={
+  en:[
+    'Instruments cleaned and visually inspected before sterilization',
+    'Instruments wrapped after drying',
+    'Chemical indicator inside every pack',
+    'Pack labelled: cycle/load number, date, expiry',
+    'Spore (biological) test at least weekly',
+    'Sterile items stored to protect sterility',
+    'Single-use items discarded after one use',
+    'Hand hygiene and PPE monitored',
+    'Sterilizer maintenance and test log kept'
+  ],
+  ar:[
+    'تنظيف الأدوات وفحصها بصرياً قبل التعقيم',
+    'تغليف الأدوات بعد التجفيف',
+    'وجود مؤشر كيميائي داخل كل طرد',
+    'تميز الطرد: رقم الدورة/الحمل، التاريخ، الانتهاء',
+    'فحص الأبواغ (البيولوجي) أسبوعياً على الأقل',
+    'تخزين المواد المعقمة لحمايتها',
+    'التخلص من الأدوات ذات الاستخدام الواحد',
+    'مراقبة نظافة اليدين ومعدات الوقاية الشخصية',
+    'سجل صيانة واختبار جهاز التعقيم'
+  ]
+};
+
+const MD=[['f','Fluoxetine','فلوكسيتين'],['p','Paroxetine','باروكسيتين'],['c','Citalopram','سيتالوبرام'],['m','Maprotiline','مابر أوتيلين'],['a','Amitriptyline','أميتريبتيلين']];
+
+const Qi=(l,n,d,T,lo,t,rec)=>{if(V['l.qon']!=='1')return[];const v=pct(g(n),g(d));return v==null?[]:[I(l,v,'%',t,lo?(v<=T?100:Math.round(100*T/v)):Math.min(100,Math.round(v)),rec)]};
+
+const SEC=[
+{
+  id:'r',
+  t:{en:'Radiology',ar:'الأشعة'},
+  av:{en:'Is a radiology service available?',ar:'هل تتوفر خدمة الأشعة؟'},
+  body:(L)=>[
+    ['cg',L=='ar'?'الخدمات المتاحة':'Services available',[['sx',L=='ar'?'أشعة سينية (X-ray)':'X-ray'],['sus',L=='ar'?'موجات فوق صوتية (US)':'US'],['smri',L=='ar'?'رنين مغناطيسي (MRI)':'MRI'],['sct',L=='ar'?'أشعة مقطعية (CT)':'CT']]],
+    ['n','vis',L=='ar'?'عدد الزوار':'Number of visitors'],
+    ['n','ord',L=='ar'?'طلبات الأشعة (الإجمالي)':'Imaging requests (total)'],
+    ['n','ref',L=='ar'?'المرضى المحولون للأشعة':'Patients referred for imaging'],
+    ['n','x',L=='ar'?'طلبات الأشعة السينية':'X-ray requests'],
+    ['n','us',L=='ar'?'طلبات الموجات فوق الصوتية':'US requests'],
+    ['n','mri',L=='ar'?'طلبات الرنين المغناطيسي':'MRI requests'],
+    ['n','ct',L=='ar'?'طلبات الأشعة المقطعية':'CT requests'],
+    ['n','rep',L=='ar'?'الأشعة المرسلة للتقرير الرسمي (اختياري)':'X-ray images sent for formal reporting (optional)'],
+    ['yn','need',L=='ar'?'الحاجة لنوع آخر من الأشعة':'Need for a different type of imaging'],
+    ['ch'],
+    ['t','oth',dict[L].othNotes]
+  ],
+  cls:{v:()=>pct(g('r.ord'),g('r.vis')),b:[8,17]},
+  ind:(L)=>[
+    I(L=='ar'?'طلبات الأشعة لكل زائر':'Imaging requests per visitor',pct(g('r.ord'),g('r.vis')),'%',L=='ar'?'المرجع: حوالي 12.5% من الزيارات':'Reference: about 12.5% of visits (approximate)',null,''),
+    G(L=='ar'?'أشعة سينية لكل زائر':'X-ray requests per visitor',pct(g('r.x'),g('r.vis')),'%',L=='ar'?'أقل من 3% (مقياس وزارة الصحة)':'Below 3% (Oman MOH scale)',[3,3.5,4,4.5,5],1,L=='ar'?'مراجعة مبررات طلبات الأشعة':'Review the justification for X-ray requests and apply ordering criteria'),
+    G(L=='ar'?'الأشعة المرسلة للتقرير الرسمي':'X-rays sent for formal reporting',pct(g('r.rep'),g('r.x')),'%',L=='ar'?'أعلى من 90% (مقياس وزارة الصحة)':'Above 90% (Oman MOH scale)',[50,60,70,80,90],0,L=='ar'?'إرسال جميع الصور للتقرير الرسمي':'Send all images for formal reporting')
+  ],
+  chk:(L)=>{
+    const w=[],p=['x','us','mri','ct'].map(k=>g('r.'+k)),o=g('r.ord');
+    if(p.every(a=>a!=null)&&o!=null&&p.reduce((a,b)=>a+b)!=o)w.push(dict[L].modalityMismatch);
+    if(g('r.ref')>g('r.vis'))w.push(dict[L].refExceedVis);
+    return w;
+  }
+},
+{
+  id:'l',
+  t:{en:'Laboratory',ar:'المختبر'},
+  av:{en:'Is there a laboratory in the facility?',ar:'هل يوجد مختبر في المؤسسة؟'},
+  body:(L)=>[
+    ['n','vis',L=='ar'?'عدد الزوار':'Number of visitors'],
+    ['n','tst',L=='ar'?'طلبات المختبر (الطلبات وليس الفحوصات)':'Lab requests (orders, not individual tests)'],
+    ['yn','dev',L=='ar'?'الحاجة لجهاز جديد':'Need for a new device'],
+    ['yn','nt',L=='ar'?'الحاجة لإضافة فحص جديد':'Need to add a new test'],
+    ['cg',dict[L].challenges,[['ch0',CH[L][0]],['ch1',CH[L][1]],['ch3',L=='ar'?'نقص المحاليل':'Shortage of reagents'],['ch2',CH[L][2]]]],
+    ['t','oth',dict[L].othNotes],
+    ['tg','qon',L=='ar'?'إظهار مؤشرات جودة المختبر (اختياري)':'Show lab quality indicators (optional; included in the report if filled)'],
+    ['grp','l.qon',[
+      ['n','rn',L=='ar'?'العينات مرفوضة':'Samples rejected'],['n','rd',L=='ar'?'إجمالي العينات المستلمة':'Total samples received'],
+      ['n','nn',L=='ar'?'عينات بدون طلب إلكتروني':'Samples without electronic order'],['n','nd',L=='ar'?'إجمالي العينات (للطلبات)':'Total samples (for orders)'],
+      ['n','iqn',L=='ar'?'نتائج ضبط الجودة الداخلي الخارجه عن الحدود':'Internal QC results outside limits'],['n','iqd',L=='ar'?'إجمالي نتائج ضبط الجودة الداخلي':'Total internal QC results'],
+      ['n','cn',L=='ar'?'تقارير تم تصحيحها أو سحبها':'Reports corrected or recalled'],['n','cd',L=='ar'?'إجمالي التقارير الصادرة':'Total reports issued'],
+      ['n','kn',L=='ar'?'القيم الحرجة المبلّغ عنها':'Critical values notified'],['n','kd',L=='ar'?'إجمالي القيم الحرجة':'Total critical values']
+    ]]
+  ],
+  cls:{v:()=>pct(g('l.tst'),g('l.vis')),b:[30,50]},
+  ind:(L)=>[
+    G(L=='ar'?'طلبات المختبر لكل زائر':'Lab requests per visitor',pct(g('l.tst'),g('l.vis')),'%',L=='ar'?'أقل من 30% (مقياس وزارة الصحة)':'Below 30% (Oman MOH scale)',[30,35,40,45,50],1,L=='ar'?'مراجعة مبررات الفحوصات':'Review request justification and avoid repeat testing'),
+    ...Qi(L=='ar'?'جودة المختبر: نسبة رفض العينات':'Lab quality: Sample rejection rate','l.rn','l.rd',.5,1,L=='ar'?'أقل من 0.5%':'Below 0.5% (CAP)',L=='ar'?'مراجعة معايير القبول وتدريب فنيي السحب':'Review acceptance criteria and train sample collectors'),
+    ...Qi(L=='ar'?'جودة المختبر: عينات بدون طلب':'Lab quality: Samples without order','l.nn','l.nd',5,1,L=='ar'?'5% أو أقل':'5% or less (CAP)',L=='ar'?'التنسيق مع الأقسام الطالبة':'Coordinate with requesting departments'),
+    ...Qi(L=='ar'?'جودة المختبر: فشل ضبط الجودة الداخلي':'Lab quality: Internal QC failure rate','l.iqn','l.iqd',5,1,L=='ar'?'5% أو أقل':'5% or less (CLSI)',L=='ar'?'تحليل الأسباب الجذرية للانحرافات':'Root-cause analysis of repeated failures'),
+    ...Qi(L=='ar'?'جودة المختبر: التقارير المصححة':'Lab quality: Corrected reports','l.cn','l.cd',2.8,1,L=='ar'?'أقل من 2.8%':'Below 2.8% (CAP)',L=='ar'?'تحليل أسباب الأخطاء وإعادة التدريب':'Analyse error causes and retrain staff'),
+    ...Qi(L=='ar'?'جودة المختبر: الإبلاغ عن القيم الحرجة':'Lab quality: Critical value notification','l.kn','l.kd',100,0,'100%',L=='ar'?'الالتزام بالإبلاغ الفوري والتوثيق':'Enforce immediate notification and documentation')
+  ],
+  chk:(L)=>{
+    const w=[];
+    [['rn','rd'],['nn','nd'],['iqn','iqd'],['cn','cd'],['kn','kd']].forEach(([a,b])=>{if(g('l.'+a)>g('l.'+b))w.push(dict[L].numExceedDenom)});
+    return[...new Set(w)];
+  }
+},
+{
+  id:'m',
+  t:{en:'Mental health',ar:'الصحة النفسية'},
+  av:{en:'Are mental health services provided?',ar:'هل تقدم خدمات الصحة النفسية؟'},
+  body:(L)=>[
+    ['n','doc',L=='ar'?'عدد الأطباء (لحساب نسبة المدربين)':'Number of doctors (to compute % trained)'],
+    ['n','trn',L=='ar'?'الأطباء المدربون على دمج الصحة النفسية':'Doctors trained to integrate mental health'],
+    ['cg',L=='ar'?'مضادات الاكتئاب المتوفرة':'Antidepressants available',MD.map(([k,en,ar])=>['m'+k,L=='ar'?ar:en])],
+    ['n','p4',L=='ar'?'مرات استخدام PHQ-4':'Times PHQ-4 used'],
+    ['n','p9',L=='ar'?'مرات استخدام PHQ-9':'Times PHQ-9 used'],
+    ['n','g7',L=='ar'?'مرات استخدام GAD-7':'Times GAD-7 used'],
+    ['yn','sp',L=='ar'?'إجراء مكتوب للبند 9 من PHQ-9 (أفكار إيذاء النفس)':'Written procedure for PHQ-9 item 9 (thoughts of self-harm)'],
+    ['n','an',L=='ar'?'إجمالي تشخيصات القلق':'Total diagnosed with anxiety'],
+    ['n','anN',L=='ar'?'الحالات الجديدة للقلق':'New cases of anxiety'],
+    ['n','de',L=='ar'?'إجمالي تشخيصات الاكتئاب':'Total diagnosed with depression'],
+    ['n','deN',L=='ar'?'الحالات الجديدة للاكتئاب':'New cases of depression'],
+    ['n','rf',L=='ar'?'الحالات المحولة':'Cases referred'],
+    ['cg',L=='ar'?'سبب التحويل':'Reason for referral',[['rd1',L=='ar'?'نقص الأدوية':'Medication shortage'],['rd2',L=='ar'?'الحاجة لرأي أخصائي':'Need for a specialist opinion']]],
+    ['html',`<div class="w f"><span>${L=='ar'?'مساعد تفسير الدرجات (اختياري، لا يحفظ)':'Score interpretation helper (optional, not saved)'}</span><span>PHQ-9 <input type="number" data-h="9" style="width:80px"> GAD-7 <input type="number" data-h="7" style="width:80px"> PHQ-4 <input type="number" data-h="4" style="width:80px"></span><b id="hout"></b></div>`],
+    ['t','oth',dict[L].othNotes]
+  ],
+  ind:(L)=>{
+    const sm=MD.filter(([k])=>V['m.m'+k]==='1').length,tools=['p4','p9','g7'].filter(k=>g('m.'+k)>0).length,tr=pct(g('m.trn'),g('m.doc')),dg=(g('m.an')||0)+(g('m.de')||0);
+    return[
+      G(L=='ar'?'الأطباء المدربون':'Doctors trained',tr,'%',L=='ar'?'المقترح: أعلى من 90%':'Proposed: above 90%',[20,40,60,80,90],0,L=='ar'?'تدريب باقي الأطباء':'Train the remaining doctors in mental health integration'),
+      I(L=='ar'?'توفر مضادات الاكتئاب':'Antidepressant availability',sm,'/5',L=='ar'?'قائمة منظمة الصحة: فلوكسيتين وأميتريبتيلين أساسيان':'WHO EML: fluoxetine and amitriptyline are essential',sm*20,V['m.mf']==='1'?(L=='ar'?'استكمال الأدوية الناقصة':'Complete the missing medicines'):(L=='ar'?'الفلوكسيتين غير متوفر':'Fluoxetine unavailable: WHO first-choice SSRI')),
+      I(L=='ar'?'أدوات المسح المستخدمة':'Screening tools in use',tools,'/3','PHQ-4, PHQ-9, GAD-7',Math.round(tools/3*100),L=='ar'?'البدء باستخدام أدوات المسح الغير مستخدمة':'Start using the unused screening tools'),
+      V['m.sp']==null?I(L=='ar'?'إجراء البند 9':'Item 9 procedure',null,'',L=='ar'?'نعم':'Yes',null,''):I(L=='ar'?'إجراء البند 9 (إيذاء النفس)':'PHQ-9 item 9 (self-harm) procedure',V['m.sp']==='1'?(L=='ar'?'نعم':'Yes'):(L=='ar'?'لا':'No'),'',L=='ar'?'نعم':'Yes',V['m.sp']==='1'?100:0,L=='ar'?'وضع إجراء مكتوب للحالات الإيجابية':'Establish a written procedure for positive item 9 responses'),
+      I(L=='ar'?'نسبة المحولين من المشخصين':'Referred as share of diagnosed',pct(g('m.rf'),dg),'%',L=='ar'?'للمعلومات فقط':'Information only',null,V['m.rd1']==='1'?(L=='ar'?'معالجة نقص الإمداد الدوائي':'Referrals due to medicine shortage: resolve supply'):'')
+    ]
+  },
+  chk:(L)=>{
+    const w=[];
+    if(g('m.anN')>g('m.an'))w.push(dict[L].newAnxExceedTotal);
+    if(g('m.deN')>g('m.de'))w.push(dict[L].newDepExceedTotal);
+    if(g('m.trn')>g('m.doc'))w.push(dict[L].trnDocExceedTotal);
+    return w;
+  }
+},
+{
+  id:'d',
+  t:{en:'Dental',ar:'الأسنان'},
+  av:{en:'Is a dental service available in the facility?',ar:'هل تتوفر خدمة الأسنان في المؤسسة؟'},
+  body:(L)=>[
+    ['n','dn',L=='ar'?'عدد أطباء الأسنان':'Number of dentists'],
+    ['n','cs',L=='ar'?'متوسط الحالات العلاجية اليومية (كافة الأطباء)':'Average daily treatment cases (all dentists)'],
+    ['n','wt',L=='ar'?'متوسط وقت انتظار المريض (بالدقائق)':'Average patient waiting time (minutes)'],
+    ['n','ap',L=='ar'?'متوسط الموعد التالي (بالأيام)':'Average appointment interval (days)'],
+    ['n','ex',L=='ar'?'عدد عمليات الخلع':'Number of extractions'],
+    ['n','cp',L=='ar'?'مضاعفات ما بعد الخلع (خلال 7 أيام)':'Complications after extraction (within 7 days)'],
+    ['yn','dev',L=='ar'?'الحاجة لجهاز جديد':'Need for a new device'],
+    ['cg',dict[L].challenges,[['ch0',CH[L][0]],['ch1',L=='ar'?'نقص الأجهزة / الأدوات':'Shortage of equipment / instruments'],['ch3',L=='ar'?'نقص مواد الأسنان':'Shortage of dental materials'],['ch2',CH[L][2]]]],
+    ['ck',L=='ar'?'التعقيم ومكافحة العدوى':'Sterilization and infection control (CDC-based)'],
+    ['t','oth',dict[L].othNotes]
+  ],
+  cls:{v:()=>pct(g('d.cp'),g('d.ex')),b:[3,8]},
+  ind:(L)=>{
+    const ck=SI[L].map((_,i)=>V['d.s'+i]).filter(x=>x==='1'||x==='0'),y=ck.filter(x=>x==='1').length;
+    return[
+      G(L=='ar'?'الحالات اليومية لكل طبيب':'Daily cases per dentist',g('d.dn')?g('d.cs')/g('d.dn'):null,'',L=='ar'?'15 أو أقل (مقياس وزارة الصحة)':'15 or fewer (Oman MOH scale)',[15.01,20.01,25.01,30.01,35.01],1,L=='ar'?'إعادة توزيع الحالات أو دعم الكادر':'Redistribute cases or add staff'),
+      G(L=='ar'?'معدل مضاعفات الخلع':'Extraction complication rate',pct(g('d.cp'),g('d.ex')),'%',L=='ar'?'المقترح: 3% أو أقل':'Proposed: 3% or less',[3.01,5.01,8.01,12.01,20.01],1,L=='ar'?'مراجعة التقنية الجراحية وإرشادات ما بعد الخلع':'Review surgical technique and post-extraction instructions'),
+      G(L=='ar'?'متوسط وقت الانتظار':'Average waiting time',g('d.wt'),L=='ar'?' دقيقة':' min',L=='ar'?'المقترح: 20 دقيقة أو أقل':'Proposed: 20 minutes or less',[10.01,15.01,20.01,30.01,45.01],1,L=='ar'?'تحسين نظام المواعيد':'Improve appointment scheduling'),
+      G(L=='ar'?'متوسط فترة الموعد التالي':'Average appointment interval',g('d.ap'),L=='ar'?' يوم':' days',L=='ar'?'المقترح: 7 أيام أو أقل':'Proposed: 7 days or less',[3.01,7.01,14.01,21.01,30.01],1,L=='ar'?'زيادة الطاقة الاستيعابية للمواعيد':'Increase appointment capacity'),
+      I(L=='ar'?'التعقيم ومكافحة العدوى':'Sterilization and infection control',ck.length?y+'/'+ck.length:null,'',L=='ar'?'جميع البنود نعم':'All items Yes',ck.length?Math.round(y/ck.length*100):null,L=='ar'?'تصحيح بنود التعقيم الغير مطبقة':'Correct the unmet sterilization items')
+    ]
+  },
+  chk:(L)=>g('d.cp')>g('d.ex')?[dict[L].compExceedExt]:[]
+}
+];
+
+const esc=s=>String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+
+const YN=(k)=>`<span class="rd"><label><input type="radio" name="${k}" value="1" data-k="${k}">${dict[currentLang].yes}</label><label><input type="radio" name="${k}" value="0" data-k="${k}">${dict[currentLang].no}</label></span>`;
+
+function fld(p,b){
+  const[t,k,l,o]=b,key=p+'.'+k;
+  if(t=='n')return`<label class="f"><span>${l}</span><input type="number" min="0" step="any" data-k="${key}"></label>`;
+  if(t=='t')return`<label class="f w"><span>${l}</span><textarea rows="2" data-k="${key}"></textarea></label>`;
+  if(t=='yn')return`<div class="f"><span>${l}</span>${YN(key)}<input class="nt" placeholder="${dict[currentLang].note}" data-k="${key}n"></div>`;
+  if(t=='cg')return`<fieldset class="w"><legend>${k}</legend>${l.map(([c,n])=>`<label class="ck"><input type="checkbox" data-k="${p}.${c}">${n}</label>`).join('')}</fieldset>`;
+  if(t=='ch')return fld(p,['cg',dict[currentLang].challenges,CH[currentLang].map((n,i)=>['ch'+i,n])]);
+  if(t=='ck')return`<fieldset class="w"><legend>${k}</legend><table>${SI[currentLang].map((n,i)=>`<tr><td>${n}</td><td class="rd">${[['1',dict[currentLang].yes],['0',dict[currentLang].no],['n',dict[currentLang].na]].map(([v,x])=>`<label><input type="radio" name="${p}.s${i}" value="${v}" data-k="${p}.s${i}">${x}</label>`).join('')}</td></tr>`).join('')}</table></fieldset>`;
+  if(t=='tg')return`<label class="ck w"><input type="checkbox" data-k="${key}"><b>${l}</b></label>`;
+  if(t=='grp')return`<div class="grid w" data-show="${k}">${l.map(b=>fld('l',b)).join('')}</div>`;
+  if(t=='html')return k;
+}
+
+const FAC={
+  en:{
+    'Hospitals':['Sultan Qaboos Hospital, Salalah','Taqah Hospital','Mirbat Hospital','Sadah Hospital','Thumrait Hospital','Rakhyut Hospital','Dhalkut Hospital','Muqshin Hospital','Madinat Al Haq Hospital'],
+    'Health centres and complexes':['Salalah Health Complex','Al Saada Health Complex','Awqad Health Complex','Dahariz Health Centre','Toi Atair Health Centre','Qairoon Hairiti Health Centre','Al Mazyunah Health Centre','Shalim Health Centre']
+  },
+  ar:{
+    'المستشفيات':['مستشفى سلطان قابوس بصلالة','مستشفى طاقة','مستشفى مرباط','مستشفى سدح','مستشفى ثمريت','مستشفى رخيوت','مستشفى ضلكوت','مستشفى مقشن','مستشفى مدينة الحق'],
+    'المراكز والمجمعات الصحية':['مجمع صلالة الصحي','مجمع السعادة الصحي','مجمع عوقد الصحي','مركز الدهاريز الصحي','مركز طوي أعتير الصحي','مركز قيرون حيريتي الصحي','مركز المزيونة الصحي','مركز شليم الصحي']
+  }
+};
+
+function renderUI(){
+  const d = dict[currentLang];
+  document.documentElement.lang = currentLang;
+  document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+
+  $('#h_title').textContent = d.title;
+  $('#h_sub').textContent = d.sub;
+  $('#bL').textContent = d.langBtn;
+  $('#bR').textContent = d.genRep;
+  $('#bX').textContent = d.expJson;
+  $('#lbl_imp').textContent = d.impJson;
+  $('#bC').textContent = d.clrAll;
+  $('#lbl_adet').textContent = d.auditDet;
+
+  $('#info').innerHTML = `<label class="f"><span>${d.facLbl}</span><select data-k="i.fs"><option value="">${d.selFac}</option>${Object.entries(FAC[currentLang]).map(([g,a])=>`<optgroup label="${g}">${a.map(x=>`<option>${x}</option>`).join('')}</optgroup>`).join('')}</select></label><label class="f"><span>${d.orTypeFac}</span><input type="text" data-k="i.fo"></label>`+[
+    ['aud',d.audName,'text'],
+    ['dt',d.audDt,'date']
+  ].map(([k,l,t])=>`<label class="f"><span>${l}</span><input type="${t}" data-k="i.${k}"></label>`).join('')+`<label class="f"><span>${d.audPer}</span><select data-k="i.per">${(currentLang=='ar'?['الربع الأول','الربع الثاني','الربع الثالث','الربع الرابع','سنوي']:['Q1','Q2','Q3','Q4','Annual']).map(x=>`<option>${x}</option>`).join('')}</select></label>`;
+
+  $('#tabs').innerHTML=SEC.map((s,i)=>`<button data-t="${s.id}" class="${i?'':'on'}">${i+1}. ${s.t[currentLang]} <span id="tb-${s.id}"></span></button>`).join('');
+
+  $('#secs').innerHTML=SEC.map((s,i)=>{
+    const p=s.id;
+    return`<section id="s-${p}" ${i?'hidden':''}>
+      <h2>${s.t[currentLang]}<span id="c-${p}"></span></h2>
+      <div class="f"><span>${s.av[currentLang]}</span>${YN(p+'.av')}</div>
+      <div data-hide="${p}.av">
+        <div class="grid" style="margin-top:10px">${s.body(currentLang).map(b=>fld(p,b)).join('')}</div>
+        ${s.cls?`<div class="f" style="margin-top:10px">
+          <span>${d.clsAuto.replace('{p}',p)}</span>
+          <select data-k="${p}.cls">
+            <option value="">${d.autoOpt}</option>${Object.entries(CL[currentLang]).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
+          </select>
+          <input class="nt" placeholder="${d.reasonOverride}" data-k="${p}.why">
+        </div>`:''}
+        <div class="f" style="margin-top:10px">
+          <span>${d.ivReq} <small id="iv-${p}"></small></span>
+          ${YN(p+'.iv')}
+        </div>
+      </div>
+      <div class="out" id="o-${p}"></div>
+    </section>`;
+  }).join('');
+
+  $('#tabs').onclick=e=>{
+    const t=e.target.closest('button');
+    if(!t)return;
+    Q('#tabs button').forEach(b=>b.classList.toggle('on',b==t));
+    SEC.forEach(s=>$('#s-'+s.id).hidden=s.id!=t.dataset.t);
+  };
+
+  load();
+  upd();
+}
+
+$('#bL').onclick=()=>{
+  currentLang = currentLang === 'en' ? 'ar' : 'en';
+  V['_lang'] = currentLang;
+  save();
+  renderUI();
+};
+
+function vis(){Q('[data-show]').forEach(e=>e.hidden=V[e.dataset.show]!=='1');Q('[data-hide]').forEach(e=>e.hidden=V[e.dataset.hide]==='0')}
+
+function load(){
+  Q('[data-k]').forEach(e=>{
+    const v=V[e.dataset.k];
+    if(e.type=='checkbox')e.checked=v==='1';
+    else if(e.type=='radio')e.checked=v===e.value;
+    else e.value=v??'';
+  });
+  vis();
+}
+
+function upd(){
+  const sc=[];
+  const d = dict[currentLang];
+  SEC.forEach(s=>{
+    const p=s.id,na=V[p+'.av']==='0';
+    let inds=[],w=[],score=null,cl=null;
+    if(!na){
+      inds=s.ind(currentLang).filter(i=>i.sc!=null||i.v!=null);
+      const z=inds.filter(i=>i.sc!=null);
+      if(z.length)score=Math.round(z.reduce((a,i)=>a+i.sc,0)/z.length);
+      w=s.chk?s.chk(currentLang):[];
+      if(s.cls){
+        const v=s.cls.v();
+        if(v!=null)cl=v<s.cls.b[0]?'b':v>s.cls.b[1]?'a':'m';
+        if(cl&&V[p+'.cls']&&V[p+'.cls']!=cl&&!V[p+'.why'])w.push(d.overrideReasonReq);
+      }
+    }
+    const auto=score!=null&&(score<60||inds.some(i=>i.sc!=null&&i.sc<50))?'1':'0';
+    s.r={na,inds,w,score,cl,fin:V[p+'.cls']||cl,iv:V[p+'.iv']??auto,auto};
+    if(score!=null)sc.push(score);
+
+    const chip=score==null?'':`<b class="${st(score)}">${score}</b>`;
+    $('#c-'+p).innerHTML=chip;
+    $('#tb-'+p).innerHTML=chip.replace('<b','<b style="font-size:14px"');
+
+    if(s.cls)$('#a-'+p).textContent=cl?CL[currentLang][cl]:'—';
+    $('#iv-'+p).textContent=score==null?'':`(${d.sug}: `+(auto=='1'?d.yes:d.no)+')';
+
+    $('#o-'+p).innerHTML=na?d.servNA:inds.map(i=>`<div><span>${i.l}</span><span class="${i.sc==null?'':st(i.sc)}">${fm(i.v)}${i.u&&i.v!=null?i.u:''}${i.sc!=null?' — '+i.sc:''}</span></div>`).join('')+w.map(x=>`<div class="warn">⚠ ${x}</div>`).join('');
+  });
+
+  const o=sc.length?Math.round(sc.reduce((a,b)=>a+b)/sc.length):null;
+  $('#tot').innerHTML=o==null?`${d.overallScore}: —`:`${d.overallScore}: <b class="${st(o)}">${o}</b>`;
+  return o;
+}
+
+const hn=(v,t,n)=>n[t.filter(x=>v>=x).length];
+function hcalc(){
+  const h={};
+  Q('[data-h]').forEach(e=>h[e.dataset.h]=e.value);
+  const o=[];
+  const L = currentLang;
+  if(h[9]!=='')o.push('PHQ-9: '+hn(+h[9],[5,10,15,20],L=='ar'?['لا يوجد/طفيف','خفيف','متوسط','متوسط إلى شديد','شديد']:['None/minimal','Mild','Moderate','Moderately severe','Severe']));
+  if(h[7]!=='')o.push('GAD-7: '+hn(+h[7],[5,10,15],L=='ar'?['طفيف','خفيف','متوسط','شديد']:['Minimal','Mild','Moderate','Severe']));
+  if(h[4]!=='')o.push('PHQ-4: '+hn(+h[4],[3,6,9],L=='ar'?['طبيعي','خفيف','متوسط','شديد']:['Normal','Mild','Moderate','Severe']));
+  $('#hout').textContent=o.join(' | ');
+}
+
+function handle(e){
+  const t=e.target,k=t.dataset.k;
+  if(t.dataset.h)return hcalc();
+  if(!k)return;
+  V[k]=t.type=='checkbox'?(t.checked?'1':''):t.value;
+  save();
+  vis();
+  upd();
+}
+
+document.addEventListener('input',handle);
+document.addEventListener('change',handle);
+
+function rep(){
+  const o=upd(),fac=esc(V['i.fo']||V['i.fs']||'—'),I0=k=>esc(V['i.'+k]||'—'),R=id=>SEC.find(s=>s.id==id).r;
+  const d = dict[currentLang];
+
+  let h=`<div class="np" style="margin-bottom:10px"><button id="bB" class="s">${d.backEdit}</button> <button id="bP">${d.printPdf}</button></div><div class="card"><h2>${d.repTitle}</h2><table><tr><th>${d.facility}</th><td>${fac}</td><th>${d.auditor}</th><td>${I0('aud')}</td></tr><tr><th>${d.date}</th><td>${I0('dt')}</td><th>${d.period}</th><td>${I0('per')}</td></tr></table>`;
+
+  const ic=SEC.filter(s=>!s.r.na&&s.r.iv=='1').length,rr=R('r').inds[0],lr=R('l').inds[0];
+
+  h+=`<div class="kp"><div><b class="${o==null?'':st(o)}">${o??'—'}</b>${d.overallScore} /100<br><small>${o==null?'':stN[currentLang][st(o)]}</small></div><div><b>${rr&&rr.v!=null?fm(rr.v)+'%':'—'}</b>${rr?rr.l:'—'}<br><small>${R('r').cl?CL[currentLang][R('r').fin]:'—'}</small></div><div><b>${lr&&lr.v!=null?fm(lr.v)+'%':'—'}</b>${lr?lr.l:'—'}<br><small>${R('l').cl?CL[currentLang][R('l').fin]:'—'}</small></div><div><b class="${ic?'r':'g'}">${ic}</b>${d.secReqIv}</div></div><p><small>${d.bandsNote}</small></p>`;
+
+  h+=`<table><tr><th>${d.secHead}</th><th>${d.scoreHead}</th><th style="width:35%"></th><th>${d.clsHead}</th><th>${d.ivHead}</th></tr>`+SEC.map(s=>{const r=s.r;return`<tr><td>${s.t[currentLang]}</td><td>${r.na?(currentLang=='ar'?'غير متوفر':'Not available'):fm(r.score)}</td><td>${r.score==null?'':`<div class="bar"><i style="width:${r.score}\%;background:var(--${st(r.score)})"></i></div>`}</td><td>${r.fin?CL[currentLang][r.fin]:'—'}</td><td>${r.na?'—':r.iv=='1'?d.yes:d.no}</td></tr>`}).join('')+'</table>';
+
+  const fnd=[],ivs=[];
+  SEC.forEach(s=>{
+    const r=s.r,p=s.id;if(r.na)return;
+    h+=`<h3>${s.t[currentLang]}</h3><table><tr><th>${d.indicatorHead}</th><th>${d.valueHead}</th><th>${d.refHead}</th><th>${d.scoreHead}</th></tr>${r.inds.map(i=>`<tr><td>${i.l}</td><td>${fm(i.v)}${i.u&&i.v!=null?i.u:''}</td><td>${i.t}</td><td class="${i.sc==null?'':st(i.sc)}">${i.sc==null?'—':i.sc+' '+stN[currentLang][st(i.sc)]}</td></tr>`).join('')}</table>`;
+
+    const ch=Q('#s-'+p+' [data-k^="'+p+'.ch"]').filter(e=>e.checked).map(e=>e.parentNode.textContent.trim()),ex=[];
+    s.body(currentLang).filter(b=>b[0]=='yn').forEach(b=>{if(V[p+'.'+b[1]]==='1')ex.push(b[2]+`: ${d.yes}`+(V[p+'.'+b[1]+'n']?' — '+esc(V[p+'.'+b[1]+'n']):''))});
+
+    if(ch.length)h+=`<p><b>${d.challenges}:</b> `+ch.join(', ')+'</p>';
+    if(ex.length)h+='<p>'+ex.join('<br>')+'</p>';
+    if(V[p+'.cls']&&V[p+'.cls']!=r.cl)h+=`<p>${currentLang=='ar'?'تم تعديل التصنيف':'Classification overridden'} (${d.autoOpt}: ${r.cl?CL[currentLang][r.cl]:'—'}): ${esc(V[p+'.why']||'')}</p>`;
+    if(V[p+'.oth'])h+=`<p><b>${d.othNotes}:</b> `+esc(V[p+'.oth'])+'</p>';
+
+    r.inds.filter(i=>i.sc!=null&&i.sc<85).forEach(i=>fnd.push(`<li class="${st(i.sc)}"><b>${s.t[currentLang]} – ${i.l}:</b> <span style="color:var(--ink)">${fm(i.v)}${i.u||''} ${currentLang=='ar'?'مقابل':'against'} ${i.t}. ${currentLang=='ar'?'التوصية':'Recommendation'}: ${i.rec||'—'}</span></li>`));
+    r.w.forEach(w=>fnd.push(`<li class="warn">${s.t[currentLang]}: ${w}</li>`));
+    if(r.iv=='1')ivs.push(s.t[currentLang]+(ch.length?' ('+ch.join(', ')+')':''))
+  });
+
+  h+=`<h3>${d.keyFindRec}</h3><ul>${fnd.join('')||`<li>${d.noFind}</li>`}</ul><h3>${d.secReqIvList}</h3><ul>${ivs.map(x=>`<li>${x}</li>`).join('')||`<li>${d.none}</li>`}</ul><h3>${d.actionPlan}</h3><table><tr><th>${d.action}</th><th>${d.resp}</th><th>${d.deadline}</th></tr>${'<tr><td>&nbsp;</td><td></td><td></td></tr>'.repeat(4)}</table><table><tr><th>${d.audSig}</th><td style="height:50px"></td><th>${d.facSig}</th><td></td></tr></table></div>`;
+
+  $('#rep').innerHTML=h;
+  $('#app').hidden=true;
+  $('.bar1').hidden=true;
+  $('#rep').hidden=false;
+  scrollTo(0,0);
+  $('#bB').onclick=()=>{
+    $('#rep').hidden=true;
+    $('#app').hidden=false;
+    $('.bar1').hidden=false;
+  };
+  $('#bP').onclick=()=>print();
+}
+
+$('#bR').onclick=rep;
+
+$('#bX').onclick=()=>{
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(V)],{type:'application/json'}));
+  a.download='audit-'+(V['i.fo']||V['i.fs']||'facility')+'.json';
+  a.click();
+};
+
+$('#bI').onchange=e=>{
+  const f=e.target.files[0];
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      V=JSON.parse(r.result);
+      if(V['_lang']) currentLang = V['_lang'];
+      save();
+      renderUI();
+    }catch(x){
+      alert(dict[currentLang].invalidFile);
+    }
+  };
+  r.readAsText(f);
+};
+
+$('#bC').onclick=()=>{
+  if(confirm(dict[currentLang].confirmClear)){
+    V={_lang: currentLang};
+    save();
+    renderUI();
+  }
+};
+
+if(!V['i.dt'])V['i.dt']=new Date().toISOString().slice(0,10);
+renderUI();
+</script>
+</body>
+</html>
